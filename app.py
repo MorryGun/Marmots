@@ -60,8 +60,8 @@ app_ui = ui.page_fluid(
         ui.column(
             5,
             ui.div(
-                ui.output_plot("vegetation", width = "400px"),
-                ui.output_plot("marmots", width = "400px"),
+                ui.output_plot("marmots", width = "600px"),
+                ui.output_plot("vegetation", width = "600px"),
             )
         ),
         ui.column(
@@ -74,15 +74,18 @@ app_ui = ui.page_fluid(
     ),
 )
 
-def dummy_plot():
+def get_plot(data, colormap, title):
     nrows = 5
     ncols = 5
-    Z = np.arange(nrows * ncols).reshape(nrows, ncols)
+
+    # create axis
     x = np.arange(ncols + 1)
     y = np.arange(nrows + 1)
-
+    
     fig, ax = plt.subplots()
-    ax.pcolormesh(x, y, Z, shading='flat', vmin=Z.min(), vmax=Z.max())
+    im = ax.pcolormesh(x, y, data, shading='flat', vmin=0, vmax=data.max(), cmap=colormap)
+    ax.set_title(title)
+    fig.colorbar(im, ax=ax)
     
     return fig
 
@@ -107,13 +110,15 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.run, ignore_none=False)
     def vegetation():
-        return dummy_plot()
+        data = np.arange(5 * 5).reshape(5, 5)
+        get_plot(data, "Greens", "Vegetation")
 
     @output
     @render.plot
     @reactive.event(input.run, ignore_none=False)
     def marmots():
-        return dummy_plot()
+        data = np.arange(5 * 5).reshape(5, 5)
+        get_plot(data, "YlOrBr", "Population of marmots")
 
     @output
     @render.plot
