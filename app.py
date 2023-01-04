@@ -2,22 +2,14 @@ from shiny import App, render, reactive, ui
 import matplotlib.pyplot as plt
 import numpy as np
 
+from generator import Generator
+
 
 def simulation_tab():
     return ui.div(
         ui.input_slider("seed", "Seed", 0, 100, value=50),
-        ui.input_action_button(
-            "run", 
-            "Initiate", 
-            class_="btn-primary w-100"
-            ),
         ui.input_slider("years", "Simulation duration (years)", 0, 100, value=50),
-        ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20),
-        ui.input_action_button(
-            "run", 
-            "Run simulation", 
-            class_="btn-primary w-100"
-            )
+        ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20)
     )
 
 
@@ -26,14 +18,23 @@ app_ui = ui.page_fluid(
     ui.row(
         ui.column(
             3,
+            ui.div(
+                ui.input_slider("seed", "Seed", 0, 100, value=50),
+                ui.input_slider("years", "Simulation duration (years)", 0, 100, value=50),
+                ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20)
+            ),
             ui.navset_tab_card(
                 ui.nav(
                     "Step-by-step",
-                    simulation_tab(),
                     ui.div(
                         ui.input_action_button(
                         "run", 
                         "Next step", 
+                        class_="btn-outline-primary w-100"
+                        ),
+                        ui.input_action_button(
+                        "clear", 
+                        "Clear", 
                         class_="btn-outline-primary w-100"
                         ),
                         class_="card mb-3"
@@ -41,8 +42,19 @@ app_ui = ui.page_fluid(
                     ),
                 ui.nav(
                     "Deterministic",
-                    simulation_tab()
+                    ui.div(
+                        ui.input_action_button(
+                        "run", 
+                        "Run simulation", 
+                        class_="btn-outline-primary w-100"
+                        ),
+                        class_="card mb-3"
+                    )
                     ),
+                ui.nav(
+                    "Test",
+                    ui.output_text_verbatim("random")
+                    )
                 ),
         ),
         ui.column(
@@ -114,6 +126,21 @@ def server(input, output, session):
     @reactive.event(input.run, ignore_none=False)
     def population():
         return dummy_graf()
+
+    @output
+    @render.text
+    def random():
+        generator = Generator(input.seed())
+
+        min = 2
+        max = 20
+
+        mean = 10
+        sigma = 4
+
+        return f"""Test: random[{generator.random()}, {generator.random()}, {generator.random()}],
+         uniform[{generator.uniform(min, max)}, {generator.uniform(min, max)}, {generator.uniform(min, max)}],
+         gauss[{generator.gauss(mean, sigma)}, {generator.gauss(mean, sigma)}, {generator.gauss(mean, sigma)}]"""
 
 
 app = App(app_ui, server)
