@@ -2,8 +2,6 @@ from shiny import App, render, reactive, ui
 import matplotlib.pyplot as plt
 import numpy as np
 
-from generator import Generator
-
 
 def simulation_tab():
     return ui.div(
@@ -18,134 +16,111 @@ app_ui = ui.page_fluid(
     ui.row(
         ui.column(
             3,
-            ui.div(
-                ui.input_slider("seed", "Seed", 0, 100, value=50),
-                ui.input_slider("years", "Simulation duration (years)", 0, 100, value=50),
-                ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20)
-            ),
             ui.navset_tab_card(
                 ui.nav(
-                    "Step-by-step",
+                    "Basic settings",
                     ui.div(
-                        ui.input_action_button(
-                        "run", 
-                        "Next step", 
-                        class_="btn-outline-primary w-100"
-                        ),
-                        ui.input_action_button(
-                        "clear", 
-                        "Clear", 
-                        class_="btn-outline-primary w-100"
-                        ),
-                        class_="card mb-3"
+                        ui.input_slider("seed", "Seed", 0, 100, value=50),
+                        ui.input_slider("years", "Simulation duration (years)", 0, 100, value=50),
+                        ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20),
+                        ui.input_checkbox("useSteps", "Step-by-step")
                     )
                     ),
                 ui.nav(
-                    "Deterministic",
+                    "Detailed settings",
                     ui.div(
-                        ui.input_action_button(
-                        "run", 
-                        "Run simulation", 
-                        class_="btn-outline-primary w-100"
-                        ),
-                        class_="card mb-3"
+                        ui.input_slider("rows", "Rows", 3, 10, value=5),
+                        ui.input_slider("columns", "Columns", 3, 10, value=5),
+                        ui.input_slider("production", "Tile productivity", 20, 100, value=[30, 80]),
+                        ui.input_slider("fertility", "Marmots fertility", 2, 10, value=[3, 8]),
+                        ui.input_slider("consumption", "Marmots consumption", 2, 10, value=[3, 8]),
                     )
-                    ),
-                ui.nav(
-                    "Test",
-                    ui.output_text_verbatim("random")
                     )
                 ),
-        ),
+                    ui.div(
+                        ui.div(
+                            ui.input_action_button(
+                            "run", 
+                            "Run", 
+                            class_="btn-primary w-100"
+                        ),
+                        ui.panel_conditional(
+                            "input.useSteps",
+                            ui.input_action_button(
+                            "clear", 
+                            "Clear", 
+                            class_="btn-outline-primary w-100"
+                            )
+                        ),
+                            class_="card mb-3"
+                    )
+                    )
+                    ),
         ui.column(
-            5,
+            9,
             ui.div(
-                ui.output_plot("marmots", width = "600px"),
-                ui.output_plot("vegetation", width = "600px"),
-            )
-        ),
-        ui.column(
-            4,
-            ui.div(
-                ui.output_plot("population", width = "400px"),
-                ui.output_plot("pasture", width = "400px"),
+                ui.output_plot("grid"),
             )
         )
     ),
 )
 
-def get_plot(data, colormap, title):
-    nrows = 5
-    ncols = 5
-
-    # create axis
-    x = np.arange(ncols + 1)
-    y = np.arange(nrows + 1)
-    
-    fig, ax = plt.subplots()
-    im = ax.pcolormesh(x, y, data, shading='flat', vmin=0, vmax=data.max(), cmap=colormap)
-    ax.set_title(title)
-    fig.colorbar(im, ax=ax)
-    
-    return fig
-
-def dummy_graf():
-    # make data
-    x = np.linspace(0, 10, 100)
-    y = 4 + 2 * np.sin(2 * x)
-
-    # plot
-    fig, ax = plt.subplots()
-
-    ax.plot(x, y, linewidth=2.0)
-
-    ax.set(xlim=(0, 8), xticks=np.arange(1, 8),
-       ylim=(0, 8), yticks=np.arange(1, 8))
-    
-    return fig
-
 
 def server(input, output, session):
-    @output
-    @render.plot
-    @reactive.event(input.run, ignore_none=False)
-    def vegetation():
-        data = np.arange(5 * 5).reshape(5, 5)
-        get_plot(data, "Greens", "Vegetation")
+    def get_data():
+        nrows = input.rows()
+        ncols = input.columns()
+        data = np.arange(nrows * ncols).reshape(nrows, ncols)
+
+        with ui.Progress(min=1, max=15) as p:
+            p.set(message="Calculation in progress", detail="This may take a while...")
+
+            for i in range(1, 15):
+                p.set(i, message="Computing")
+
+        return data
+
+
+    def create_colormesh(fig, data, ax, title, colormap, fontsize=16):
+        nrows = input.rows()
+        ncols = input.columns()
+
+        # create axis
+        x = np.arange(-0.5, ncols, 1)
+        y = np.arange(-0.5, nrows, 1)
+
+        pc = ax.pcolormesh(x, y, data, shading='flat', vmin=0, vmax=data.max(), cmap = colormap)
+
+        ax.set_title(title, fontsize=fontsize)
+        fig.colorbar(pc, ax=ax, location="bottom")
+
+        return pc
+        
 
     @output
     @render.plot
-    @reactive.event(input.run, ignore_none=False)
-    def marmots():
-        data = np.arange(5 * 5).reshape(5, 5)
-        get_plot(data, "YlOrBr", "Population of marmots")
+    @reactive.event(input.run)
+    def grid():
+        data = get_data()
+        fig, axs = plt.subplots(2, 2)
+        gridspec = fig.add_gridspec(2, 2)
 
-    @output
-    @render.plot
-    @reactive.event(input.run, ignore_none=False)
-    def pasture():
-        return dummy_graf()
+        # clear the left column for the subfigure:
+        for a in axs[:, 0]:
+            a.remove()
 
-    @output
-    @render.plot
-    @reactive.event(input.run, ignore_none=False)
-    def population():
-        return dummy_graf()
+        # plot data in remaining axes:
+        for a in axs[:, 1:].flat:
+            a.plot(np.arange(10))
 
-    @output
-    @render.text
-    def random():
-        generator = Generator(input.seed())
+        # make the subfigure in the empty gridspec slots:
+        subfig = fig.add_subfigure(gridspec[:, 0])
 
-        min = 2
-        max = 20
-
-        mean = 10
-        sigma = 4
-
-        return f"""Test: random[{generator.random()}, {generator.random()}, {generator.random()}],
-         uniform[{generator.uniform(min, max)}, {generator.uniform(min, max)}, {generator.uniform(min, max)}],
-         gauss[{generator.gauss(mean, sigma)}, {generator.gauss(mean, sigma)}, {generator.gauss(mean, sigma)}]"""
+        axsLeft = subfig.subplots(1, 2)
+        create_colormesh(fig, data, axsLeft[0], "Marmot population", "YlOrBr")
+        create_colormesh(fig, data, axsLeft[1], "Vegetation", "Greens")
+    
+        return fig
 
 
 app = App(app_ui, server)
