@@ -1,6 +1,7 @@
 from shiny import App, render, reactive, ui
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 
 def simulation_tab():
@@ -82,12 +83,9 @@ def server(input, output, session):
 
 
     def create_colormesh(fig, data, ax, title, colormap, fontsize=16):
-        nrows = input.rows()
-        ncols = input.columns()
-
         # create axis
-        x = np.arange(-0.5, ncols, 1)
-        y = np.arange(-0.5, nrows, 1)
+        x = np.arange(-0.5, data.shape[1], 1)
+        y = np.arange(-0.5, data.shape[0], 1)
 
         pc = ax.pcolormesh(x, y, data, shading='flat', vmin=0, vmax=data.max(), cmap = colormap)
 
@@ -95,6 +93,19 @@ def server(input, output, session):
         fig.colorbar(pc, ax=ax, location="bottom")
 
         return pc
+
+
+    def create_plot(a, data, years, title, xlabel, ylabel):
+        #temp data prep
+        dataset = []
+        for year in range(years-25):
+            dataset.append(random.random()*25)
+
+        a.plot(dataset)
+        a.set_title(title)
+        a.set_xlabel(xlabel)
+        a.set_ylabel(ylabel)
+        a.axis([0, years, 0, data.max()+2])
         
 
     @output
@@ -110,8 +121,8 @@ def server(input, output, session):
             a.remove()
 
         # plot data in remaining axes:
-        for a in axs[:, 1:].flat:
-            a.plot(np.arange(10))
+        create_plot(axs[:,1:].flat[0], data, input.years(), "Marmot population", "years", "population")
+        create_plot(axs[:,1:].flat[1], data, input.years(), "Pasture volumes", "years", "kg")
 
         # make the subfigure in the empty gridspec slots:
         subfig = fig.add_subfigure(gridspec[:, 0])
@@ -119,6 +130,7 @@ def server(input, output, session):
         axsLeft = subfig.subplots(1, 2)
         create_colormesh(fig, data, axsLeft[0], "Marmot population", "YlOrBr")
         create_colormesh(fig, data, axsLeft[1], "Vegetation", "Greens")
+        fig.tight_layout()
     
         return fig
 
