@@ -15,5 +15,5 @@ class Generator:
 
     
     def gauss(self, mean, sigma):
-        return self.randomGenerator.uniform(mean, sigma)
+        return self.randomGenerator.gauss(mean, sigma)
 

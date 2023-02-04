@@ -1,7 +1,7 @@
 from shiny import App, render, reactive, ui
 import matplotlib.pyplot as plt
 import numpy as np
-import random
+from simulator import Simulator
 
 
 def simulation_tab():
@@ -30,11 +30,11 @@ app_ui = ui.page_fluid(
                 ui.nav(
                     "Detailed settings",
                     ui.div(
-                        ui.input_slider("rows", "Rows", 3, 10, value=5),
-                        ui.input_slider("columns", "Columns", 3, 10, value=5),
+                        ui.input_slider("rows", "Rows", 1, 10, value=5),
+                        ui.input_slider("columns", "Columns", 1, 10, value=5),
                         ui.input_slider("production", "Tile productivity", 20, 100, value=[30, 80]),
                         ui.input_slider("fertility", "Marmots fertility", 2, 10, value=[3, 8]),
-                        ui.input_slider("consumption", "Marmots consumption", 2, 10, value=[3, 8]),
+                        ui.input_slider("consumption", "Marmots consumption", 0, 1, value=[0.3, 0.8]),
                     )
                     )
                 ),
@@ -69,17 +69,24 @@ app_ui = ui.page_fluid(
 
 def server(input, output, session):
     def get_data():
-        nrows = input.rows()
-        ncols = input.columns()
-        data = np.arange(nrows * ncols).reshape(nrows, ncols)
 
-        with ui.Progress(min=1, max=15) as p:
-            p.set(message="Calculation in progress", detail="This may take a while...")
+        simulator = Simulator(input.seed(), input.rows(), input.columns(), input.production(), input.fertility(), input.consumption())
+        simulator.initiate()
 
-            for i in range(1, 15):
-                p.set(i, message="Computing")
+        if (input.useSteps()):
+            print("a")
+            simulator.next_year(input.pasture())
+        else:
+            print("b")
+            simulator.simulate(input.pasture(), input.years())
 
-        return data
+        # with ui.Progress(min=1, max=15) as p:
+        #     p.set(message="Calculation in progress", detail="This may take a while...")
+
+        #     for i in range(1, 15):
+        #         p.set(i, message="Computing")
+
+        return simulator.results
 
 
     def create_colormesh(fig, data, ax, title, colormap, fontsize=16):
@@ -96,16 +103,11 @@ def server(input, output, session):
 
 
     def create_plot(a, data, years, title, xlabel, ylabel):
-        #temp data prep
-        dataset = []
-        for year in range(years-25):
-            dataset.append(random.random()*25)
-
-        a.plot(dataset)
+        a.plot(data)
         a.set_title(title)
         a.set_xlabel(xlabel)
         a.set_ylabel(ylabel)
-        a.axis([0, years, 0, data.max()+2])
+        a.axis([0, years, 0, max(data)+2])
         
 
     @output
@@ -113,6 +115,11 @@ def server(input, output, session):
     @reactive.event(input.run)
     def grid():
         data = get_data()
+        marmots_grid = data[-1].marmots
+        vegetation_grid = data[-1].vegetation
+        marmots_population = [data[x].marmots.sum() for x in range(len(data))]
+        pasture = [data[x].pasture.sum() for x in range(len(data))]
+
         fig, axs = plt.subplots(2, 2)
         gridspec = fig.add_gridspec(2, 2)
 
@@ -121,15 +128,15 @@ def server(input, output, session):
             a.remove()
 
         # plot data in remaining axes:
-        create_plot(axs[:,1:].flat[0], data, input.years(), "Marmot population", "years", "population")
-        create_plot(axs[:,1:].flat[1], data, input.years(), "Pasture volumes", "years", "kg")
+        create_plot(axs[:,1:].flat[0], marmots_population, input.years(), "Marmot population", "years", "population")
+        create_plot(axs[:,1:].flat[1], pasture, input.years(), "Pasture volumes", "years", "kg")
 
         # make the subfigure in the empty gridspec slots:
         subfig = fig.add_subfigure(gridspec[:, 0])
 
         axsLeft = subfig.subplots(1, 2)
-        create_colormesh(fig, data, axsLeft[0], "Marmot population", "YlOrBr")
-        create_colormesh(fig, data, axsLeft[1], "Vegetation", "Greens")
+        create_colormesh(fig, marmots_grid, axsLeft[0], "Marmot population", "YlOrBr")
+        create_colormesh(fig, vegetation_grid, axsLeft[1], "Vegetation", "Greens")
         fig.tight_layout()
     
         return fig
