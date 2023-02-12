@@ -30,8 +30,8 @@ app_ui = ui.page_fluid(
                 ui.nav(
                     "Detailed settings",
                     ui.div(
-                        ui.input_slider("rows", "Rows", 1, 10, value=5),
                         ui.input_slider("columns", "Columns", 1, 10, value=5),
+                        ui.input_slider("rows", "Rows", 1, 10, value=5),
                         ui.input_slider("production", "Tile productivity", 20, 100, value=[30, 80]),
                         ui.input_slider("fertility", "Marmots fertility", 2, 10, value=[3, 8]),
                         ui.input_slider("consumption", "Marmots consumption", 0, 1, value=[0.3, 0.8]),
@@ -70,14 +70,12 @@ app_ui = ui.page_fluid(
 def server(input, output, session):
     def get_data():
 
-        simulator = Simulator(input.seed(), input.rows(), input.columns(), input.production(), input.fertility(), input.consumption())
+        simulator = Simulator(input.seed(), input.columns(), input.rows(), input.production(), input.fertility(), input.consumption())
         simulator.initiate()
 
         if (input.useSteps()):
-            print("a")
             simulator.next_year(input.pasture())
         else:
-            print("b")
             simulator.simulate(input.pasture(), input.years())
 
         # with ui.Progress(min=1, max=15) as p:
