@@ -13,6 +13,7 @@ class Tile:
         self.vegetation = self.productivity
         self.population = self.fertility
         self.neighbors = []
+        self.pasture = 0
 
     
     def set_neighbors(self, tiles):
