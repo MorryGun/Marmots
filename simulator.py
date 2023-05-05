@@ -40,9 +40,47 @@ class Simulator:
 
 
     def next_year(self, pasture: int) -> None:
-        pass
+        yearly_results = Results([self.tiles.shape[0], self.tiles.shape[1]])
 
+        #pasture
+        for x in range(self.tiles.shape[0]):
+            for y in range(self.tiles.shape[1]):
+                current_tile = self.tiles[x, y]
+                pasture_volumes = current_tile.vegetation * (pasture / 100)
+                
+                current_tile.vegetation = current_tile.vegetation - pasture_volumes
+                yearly_results.pasture[y, x] = pasture_volumes
 
-    
+        #consumption + reproduction
+        for x in range(self.tiles.shape[0]):
+            for y in range(self.tiles.shape[1]):
+                current_tile = self.tiles[x, y]
+                
+                #consumption
+                for m in range(current_tile.population):
+                    individual_consumption = round(self.generator.uniform(self.marmots_consumption[0], self.marmots_consumption[1]))
 
+                    if (current_tile.vegetation - individual_consumption >= 0):
+                        current_tile.vegetation = current_tile.vegetation - individual_consumption
+                    else:
+                        current_tile.population = current_tile.population - 1
 
+                if (current_tile.population >= 2):
+                    for f in range(current_tile.fertility):
+                        individual_consumption = round(self.generator.uniform(self.marmots_consumption[0], self.marmots_consumption[1]))
+
+                        if (current_tile.vegetation - individual_consumption >= 0):
+                            current_tile.vegetation = current_tile.vegetation - individual_consumption
+                            current_tile.population = current_tile.population + 1
+
+                yearly_results.marmots[y, x] = current_tile.population
+
+        #vegetation
+        for x in range(self.tiles.shape[0]):
+            for y in range(self.tiles.shape[1]):
+                current_tile = self.tiles[x, y]
+                current_tile.vegetation = current_tile.vegetation + current_tile.productivity
+                yearly_results.vegetation[y, x] = current_tile.vegetation
+
+        
+        self.results.append(yearly_results)

@@ -32,9 +32,9 @@ app_ui = ui.page_fluid(
                     ui.div(
                         ui.input_slider("columns", "Columns", 1, 10, value=5),
                         ui.input_slider("rows", "Rows", 1, 10, value=5),
-                        ui.input_slider("production", "Tile productivity", 20, 100, value=[30, 80]),
+                        ui.input_slider("production", "Tile productivity, tones/year", 0.5, 10, value=[1, 8]),
                         ui.input_slider("fertility", "Marmots fertility", 2, 10, value=[3, 8]),
-                        ui.input_slider("consumption", "Marmots consumption", 0, 1, value=[0.3, 0.8]),
+                        ui.input_slider("consumption", "Marmots consumption, kg/year", 0, 120, value=[40, 100]),
                     )
                     )
                 ),
@@ -134,7 +134,7 @@ def server(input, output, session):
 
         axsLeft = subfig.subplots(1, 2)
         create_colormesh(fig, marmots_grid, axsLeft[0], "Marmot population", "YlOrBr")
-        create_colormesh(fig, vegetation_grid, axsLeft[1], "Vegetation", "Greens")
+        create_colormesh(fig, vegetation_grid, axsLeft[1], "Vegetation, kg", "Greens")
         fig.tight_layout()
     
         return fig

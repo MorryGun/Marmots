@@ -8,7 +8,8 @@ class Tile:
     def __init__(self, coordinates, tile_productivity, marmots_fertility, generator : Generator): 
         self.id = uuid.uuid4()
         self.coordinates = coordinates
-        self.productivity = round(generator.uniform(tile_productivity[0], tile_productivity[1]))
+        # switch from tones/year to kg/year
+        self.productivity = round(generator.uniform(tile_productivity[0], tile_productivity[1])) * 1000
         self.fertility = round(generator.uniform(marmots_fertility[0], marmots_fertility[1]))
         self.vegetation = self.productivity
         self.population = self.fertility
