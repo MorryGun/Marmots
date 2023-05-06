@@ -21,7 +21,7 @@ app_ui = ui.page_fluid(
                 ui.nav(
                     "Basic settings",
                     ui.div(
-                        ui.input_slider("seed", "Seed", 0, 100, value=50),
+                        ui.input_slider("seed", "Seed", 0, 50, value=25),
                         ui.input_slider("years", "Simulation duration (years)", 0, 100, value=50),
                         ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20),
                         ui.input_checkbox("useSteps", "Step-by-step")
@@ -32,9 +32,10 @@ app_ui = ui.page_fluid(
                     ui.div(
                         ui.input_slider("columns", "Columns", 1, 10, value=5),
                         ui.input_slider("rows", "Rows", 1, 10, value=5),
-                        ui.input_slider("production", "Tile productivity, tones/year", 0.5, 10, value=[1, 8]),
+                        ui.input_slider("production", "Tile productivity, tons/year", 0.5, 10, value=[1, 8]),
                         ui.input_slider("fertility", "Marmots fertility", 2, 10, value=[3, 8]),
                         ui.input_slider("consumption", "Marmots consumption, kg/year", 0, 120, value=[40, 100]),
+                        ui.input_slider("shrubbing", "Shrubbing limit, tons", 0, 120, value=72.5),
                     )
                     )
                 ),
@@ -70,7 +71,7 @@ app_ui = ui.page_fluid(
 def server(input, output, session):
     def get_data():
 
-        simulator = Simulator(input.seed(), input.columns(), input.rows(), input.production(), input.fertility(), input.consumption())
+        simulator = Simulator(input.seed(), input.columns(), input.rows(), input.production(), input.fertility(), input.consumption(), input.shrubbing())
         simulator.initiate()
 
         if (input.useSteps()):
@@ -127,14 +128,14 @@ def server(input, output, session):
 
         # plot data in remaining axes:
         create_plot(axs[:,1:].flat[0], marmots_population, input.years(), "Marmot population", "years", "population")
-        create_plot(axs[:,1:].flat[1], pasture, input.years(), "Pasture volumes", "years", "kg")
+        create_plot(axs[:,1:].flat[1], pasture, input.years(), "Pasture volumes", "years", "tons")
 
         # make the subfigure in the empty gridspec slots:
         subfig = fig.add_subfigure(gridspec[:, 0])
 
         axsLeft = subfig.subplots(1, 2)
         create_colormesh(fig, marmots_grid, axsLeft[0], "Marmot population", "YlOrBr")
-        create_colormesh(fig, vegetation_grid, axsLeft[1], "Vegetation, kg", "Greens")
+        create_colormesh(fig, vegetation_grid, axsLeft[1], "Vegetation, tons", "Greens")
         fig.tight_layout()
     
         return fig
