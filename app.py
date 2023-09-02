@@ -33,7 +33,7 @@ app_ui = ui.page_fluid(
                         ui.input_slider("columns", "Columns", 1, 10, value=5),
                         ui.input_slider("rows", "Rows", 1, 10, value=5),
                         ui.input_slider("production", "Tile productivity, tons/year", 0.5, 10, value=[1, 8]),
-                        ui.input_slider("fertility", "Marmots fertility", 2, 10, value=[3, 8]),
+                        ui.input_slider("fertility", "Marmots fertility", 2.0, 10.0, value=3.0),
                         ui.input_slider("consumption", "Marmots consumption, kg/year", 0, 120, value=[40, 100]),
                         ui.input_slider("shrubbing", "Shrubbing limit, tons", 0, 120, value=72.5),
                     )

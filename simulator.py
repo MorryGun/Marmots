@@ -6,7 +6,6 @@ from tile import Tile
 
 class Simulator:
     def __init__(self, seed, columns, rows, tile_productivity, marmots_fertility, marmots_consumption, shrubbing_limit):
-        print(seed)
         self.generator = Generator(seed)
         self.tiles = np.empty((rows, columns), dtype=Tile)
         self.tile_productivity = tile_productivity
@@ -75,7 +74,8 @@ class Simulator:
                             current_tile.population = current_tile.population - 1
 
                     if (current_tile.population >= 2):
-                        for _ in range(current_tile.fertility):
+                        current_fertility = round(self.generator.gamma(self.marmots_fertility))
+                        for _ in range(current_fertility):
                             individual_consumption = round(self.generator.uniform(self.marmots_consumption[0], self.marmots_consumption[1]))
 
                             if (current_tile.vegetation - individual_consumption >= 0):

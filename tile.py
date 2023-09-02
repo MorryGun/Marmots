@@ -10,7 +10,7 @@ class Tile:
         self.coordinates = coordinates
         # switch from tons/year to kg/year
         self.productivity = round(generator.uniform(tile_productivity[0], tile_productivity[1])) * 1000
-        self.fertility = round(generator.uniform(marmots_fertility[0], marmots_fertility[1]))
+        self.fertility = round(generator.gamma(marmots_fertility))
         self.vegetation = self.productivity
         self.population = self.fertility
         self.neighbors = []

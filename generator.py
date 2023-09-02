@@ -16,4 +16,8 @@ class Generator:
     
     def gauss(self, mean, sigma):
         return self.randomGenerator.gauss(mean, sigma)
+    
+
+    def gamma(self, alpha):
+        return self.randomGenerator.gammavariate(alpha, 0.75)
 
