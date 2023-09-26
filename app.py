@@ -34,6 +34,7 @@ app_ui = ui.page_fluid(
                         ui.input_slider("rows", "Rows", 1, 10, value=5),
                         ui.input_slider("production", "Tile productivity, tons/year", 0.5, 10, value=[1, 8]),
                         ui.input_slider("fertility", "Marmots fertility", 2.0, 10.0, value=3.0),
+                        ui.input_slider("initial_population", "Initial population", 0, 10, value=5),
                         ui.input_slider("consumption", "Marmots consumption, kg/year", 0, 120, value=[40, 100]),
                         ui.input_slider("shrubbing", "Shrubbing limit, tons", 0, 120, value=72.5),
                     )
@@ -62,6 +63,9 @@ app_ui = ui.page_fluid(
             9,
             ui.div(
                 ui.output_plot("grid"),
+            ),
+            ui.div(
+                ui.output_text_verbatim("text")
             )
         )
     ),
@@ -71,7 +75,7 @@ app_ui = ui.page_fluid(
 def server(input, output, session):
     def get_data():
 
-        simulator = Simulator(input.seed(), input.columns(), input.rows(), input.production(), input.fertility(), input.consumption(), input.shrubbing())
+        simulator = Simulator(input.seed(), input.columns(), input.rows(), input.production(), input.fertility(), input.consumption(), input.shrubbing(), input.initial_population())
         simulator.initiate()
 
         if (input.useSteps()):
@@ -139,6 +143,17 @@ def server(input, output, session):
         fig.tight_layout()
     
         return fig
+    
+
+    @output
+    @render.text
+    @reactive.event(input.run)
+    def text():
+        data = get_data()
+        inline_output = "Inline marmot population: "
+        for year in range(input.years()):
+            inline_output += f"\n {year+1} {data[year].marmots.sum()}"
+        return inline_output
 
 
 app = App(app_ui, server)

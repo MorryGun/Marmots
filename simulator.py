@@ -5,7 +5,7 @@ from tile import Tile
 
 
 class Simulator:
-    def __init__(self, seed, columns, rows, tile_productivity, marmots_fertility, marmots_consumption, shrubbing_limit):
+    def __init__(self, seed, columns, rows, tile_productivity, marmots_fertility, marmots_consumption, shrubbing_limit, initial_population):
         self.generator = Generator(seed)
         self.tiles = np.empty((rows, columns), dtype=Tile)
         self.tile_productivity = tile_productivity
@@ -13,6 +13,7 @@ class Simulator:
         self.marmots_consumption = marmots_consumption
         self.results = []
         self.shrubbing_limit = shrubbing_limit * 1000
+        self.initial_population = initial_population
     
     
     def initiate(self) -> None:
@@ -21,7 +22,9 @@ class Simulator:
         #initiate tiles
         for x in range(self.tiles.shape[0]):
             for y in range(self.tiles.shape[1]):
-                tile = Tile([y+1, x+1], self.tile_productivity, self.marmots_fertility, self.generator)
+                initial_population = round(self.generator.gamma(self.marmots_fertility)) if self.initial_population == 0 else self.initial_population
+                tile = Tile([y+1, x+1], self.tile_productivity, initial_population, self.generator)
+                print(initial_population)
                 self.tiles[x, y] = tile
 
                 initial_results.marmots[x, y] = tile.population
