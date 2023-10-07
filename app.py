@@ -76,11 +76,7 @@ def server(input, output, session):
 
         simulator = Simulator(input.seed(), input.columns(), input.rows(), input.production(), input.fertility(), input.consumption(), input.shrubbing(), input.initial_population())
         simulator.initiate()
-
-        if (input.useSteps()):
-            simulator.next_year(input.pasture())
-        else:
-            simulator.simulate(input.pasture(), input.years())
+        simulator.simulate(input.pasture(), input.years())
 
         # with ui.Progress(min=1, max=15) as p:
         #     p.set(message="Calculation in progress", detail="This may take a while...")
