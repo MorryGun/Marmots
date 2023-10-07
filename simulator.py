@@ -24,7 +24,6 @@ class Simulator:
             for y in range(self.tiles.shape[1]):
                 initial_population = round(self.generator.gamma(self.marmots_fertility)) if self.initial_population == 0 else self.initial_population
                 tile = Tile([y+1, x+1], self.tile_productivity, initial_population, self.generator)
-                print(initial_population)
                 self.tiles[x, y] = tile
 
                 initial_results.marmots[x, y] = tile.population

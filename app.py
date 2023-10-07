@@ -23,8 +23,7 @@ app_ui = ui.page_fluid(
                     ui.div(
                         ui.input_slider("seed", "Seed", 0, 50, value=25),
                         ui.input_slider("years", "Simulation duration (years)", 0, 100, value=50),
-                        ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20),
-                        ui.input_checkbox("useSteps", "Step-by-step")
+                        ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20)
                     )
                     ),
                 ui.nav(
