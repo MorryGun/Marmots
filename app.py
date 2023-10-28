@@ -8,7 +8,20 @@ def simulation_tab():
     return ui.div(
         ui.input_slider("seed", "Seed", 0, 100, value=50),
         ui.input_slider("years", "Simulation duration (years)", 0, 100, value=50),
-        ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20)
+        ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20),
+        ui.input_checkbox("batch", "Compute batch")
+    )
+
+
+def detailed_settings_tab():
+    return ui.div(
+        ui.input_slider("columns", "Columns", 1, 10, value=5),
+        ui.input_slider("rows", "Rows", 1, 10, value=5),
+        ui.input_slider("production", "Tile productivity, tons/year", 0.5, 10, value=[1, 8]),
+        ui.input_slider("fertility", "Marmots fertility", 2.0, 10.0, value=3.0),
+        ui.input_slider("initial_population", "Initial population", 0, 10, value=5),
+        ui.input_slider("consumption", "Marmots consumption, kg/year", 0, 120, value=[40, 100]),
+        ui.input_slider("shrubbing", "Shrubbing limit, tons", 0, 120, value=72.5),
     )
 
 
@@ -20,22 +33,12 @@ app_ui = ui.page_fluid(
             ui.navset_tab_card(
                 ui.nav(
                     "Basic settings",
-                    ui.div(
-                        ui.input_slider("seed", "Seed", 0, 50, value=25),
-                        ui.input_slider("years", "Simulation duration (years)", 0, 100, value=50),
-                        ui.input_slider("pasture", "Pasture (%)", 0, 100, value=20)
-                    )
+                    simulation_tab(),
                     ),
                 ui.nav(
                     "Detailed settings",
                     ui.div(
-                        ui.input_slider("columns", "Columns", 1, 10, value=5),
-                        ui.input_slider("rows", "Rows", 1, 10, value=5),
-                        ui.input_slider("production", "Tile productivity, tons/year", 0.5, 10, value=[1, 8]),
-                        ui.input_slider("fertility", "Marmots fertility", 2.0, 10.0, value=3.0),
-                        ui.input_slider("initial_population", "Initial population", 0, 10, value=5),
-                        ui.input_slider("consumption", "Marmots consumption, kg/year", 0, 120, value=[40, 100]),
-                        ui.input_slider("shrubbing", "Shrubbing limit, tons", 0, 120, value=72.5),
+                        detailed_settings_tab(),
                     )
                     )
                 ),
@@ -46,26 +49,27 @@ app_ui = ui.page_fluid(
                             "Run", 
                             class_="btn-primary w-100"
                         ),
-                        ui.panel_conditional(
-                            "input.useSteps",
-                            ui.input_action_button(
-                            "clear", 
-                            "Clear", 
-                            class_="btn-outline-primary w-100"
-                            )
-                        ),
-                            class_="card mb-3"
+                        class_="card mb-3"
                     )
                     )
                     ),
         ui.column(
             9,
-            ui.div(
-                ui.output_plot("grid"),
+            ui.panel_conditional(
+                "!input.batch",
+                ui.div(
+                    ui.output_plot("grid"),
+                ui.div(
+                    ui.output_text_verbatim("text")
+                )
             ),
-            ui.div(
-                ui.output_text_verbatim("text")
-            )
+            ),
+            ui.panel_conditional(
+                "input.batch",
+                ui.div(
+                    ui.output_text_verbatim("batch_text")
+                )
+            ),
         )
     ),
 )
@@ -149,6 +153,14 @@ def server(input, output, session):
         for year in range(input.years()):
             inline_output += f"\n {year+1} {data[year].marmots.sum()}"
         return inline_output
+    
+
+    @output
+    @render.text
+    @reactive.event(input.run)
+    def batch_text():
+        data = get_data()
+        return "Test batch functionality"
 
 
 app = App(app_ui, server)
