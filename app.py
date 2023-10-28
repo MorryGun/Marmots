@@ -70,14 +70,13 @@ app_ui = ui.page_fluid(
                 "!input.batch",
                 ui.div(
                     ui.output_plot("grid"),
-                ui.div(
                     ui.output_text_verbatim("text")
-                )
             ),
             ),
             ui.panel_conditional(
                 "input.batch",
                 ui.div(
+                    ui.output_plot("batch_plot"),
                     ui.output_text_verbatim("batch_text")
                 )
             ),
@@ -152,6 +151,26 @@ def server(input, output, session):
         create_colormesh(fig, vegetation_grid, axsLeft[1], "Vegetation, tons", "Greens")
         fig.tight_layout()
     
+        return fig
+    
+
+    @output
+    @render.plot
+    @reactive.event(input.run)
+    def batch_plot():
+        data = get_data()
+        # create data 
+        pasture = [sublist[0] for sublist in data] 
+        viability = [sublist[1]*100 for sublist in data] 
+        mean_population = [sublist[2] for sublist in data] 
+        
+        # plot trends
+        fig = plt.figure()
+        plt.plot(pasture, viability, label = "Viability, %") 
+        plt.plot(pasture, mean_population, label = "Mean population")
+        plt.xlabel("Pasture, %")
+        plt.legend()
+
         return fig
     
 
