@@ -22,8 +22,8 @@ class Simulator:
         #initiate tiles
         for x in range(self.tiles.shape[0]):
             for y in range(self.tiles.shape[1]):
-                initial_population = round(self.generator.gamma(self.marmots_fertility)) if self.initial_population == 0 else self.initial_population
-                tile = Tile([y+1, x+1], self.tile_productivity, initial_population, self.generator)
+                initial_population = max(round(self.generator.gamma(self.marmots_fertility)), 2) if self.initial_population == 0 else self.initial_population
+                tile = Tile([y+1, x+1], self.tile_productivity, self.marmots_fertility, initial_population, self.generator)
                 self.tiles[x, y] = tile
 
                 initial_results.marmots[x, y] = tile.population
@@ -96,8 +96,12 @@ class Simulator:
 
                 yearly_results.vegetation[x, y] = current_tile.vegetation /1000
 
+                if (current_tile.population < 2):
+                    current_tile.population = 0
+
                 if (self.shrubbing_limit != 0 and current_tile.vegetation > self.shrubbing_limit):
                     current_tile.not_is_shrub = False
                     current_tile.population = 0
+                    
 
         self.results.append(yearly_results)

@@ -5,14 +5,14 @@ from generator import Generator
 
 
 class Tile:
-    def __init__(self, coordinates, tile_productivity, marmots_fertility, generator : Generator): 
+    def __init__(self, coordinates, tile_productivity, marmots_fertility, initial_population, generator : Generator):
         self.id = uuid.uuid4()
         self.coordinates = coordinates
         # switch from tons/year to kg/year
         self.productivity = round(generator.uniform(tile_productivity[0], tile_productivity[1])) * 1000
-        self.fertility = round(generator.gamma(marmots_fertility))
+        self.fertility = marmots_fertility
         self.vegetation = self.productivity
-        self.population = self.fertility
+        self.population = initial_population
         self.neighbors = []
         self.pasture = 0
         self.not_is_shrub = True
